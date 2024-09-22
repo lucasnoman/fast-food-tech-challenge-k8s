@@ -19,5 +19,5 @@ Repository containing the K8S manifests (yml) used to build the PostgreSQL datab
    - Run in the terminal
 
      ```bash
-     kubectl apply -f /db && kubectl apply -f /app
+     kubectl apply -f /K8S/db && kubectl apply -f /K8S/app
      ```
