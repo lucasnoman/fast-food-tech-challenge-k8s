@@ -5,7 +5,7 @@ metadata:
 spec:
   storageClassName: pg-storage
   capacity:
-    storage: 200Mi
+    storage: 500Mi
   accessModes:
     - ReadWriteOnce
   hostPath:
