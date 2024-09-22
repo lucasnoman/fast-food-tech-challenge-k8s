@@ -1,6 +1,6 @@
 # fast-food-tech-challenge-k8s
 
-Repository containing the K8S manifests (yml) used to build the Postgresql database and Node.js backend for the FIAP Fast Food Tech Challenge.
+Repository containing the K8S manifests (yml) used to build the PostgreSQL database and Node.js backend for the FIAP Fast Food Tech Challenge.
 
 ## Getting Started
 
@@ -11,7 +11,7 @@ Repository containing the K8S manifests (yml) used to build the Postgresql datab
    - Run in the terminal
 
      ```bash
-     sudo docker pull lucasnoman/fast-food-tech-challenge:v1.3
+     sudo docker pull lucasnoman/fast-food-tech-challenge:<coloque a última versão aqui>
      ```
 
 2. Create the database and application via K8S.
