@@ -1,0 +1,75 @@
+name: Terraform e Deploy Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.4.0'
+
+      - name: Inicializar Terraform
+        run: terraform init
+
+      - name: Validar Terraform
+        run: terraform validate
+
+      - name: Planejar Terraform
+        run: terraform plan -out=Terraform/tfplan
+
+      - name: Aplicar Terraform
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Output Terraform
+        run: terraform output -json
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
+
+  # kubernetes:
+  #   needs: terraform
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout do Repositório
+  #       uses: actions/checkout@v2
+
+  #     - name: Configurar kubectl
+  #       uses: azure/setup-kubectl@v3
+  #       with:
+  #         version: 'latest'
+
+  #     - name: Configurar Azure Credentials
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  #     - name: Substituir Placeholders nos ConfigMaps
+  #       env:
+  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #       run: |
+  #         envsubst < K8S/db/configMap.yml > K8S/db/configMap_temp.yml
+  #         envsubst < K8S/app/configMap.yml > K8S/app/configMap_temp.yml
+
+  #     - name: Aplicar ConfigMaps no Kubernetes
+  #       run: |
+  #         kubectl apply -f K8S/db/configMap_temp.yml
+  #         kubectl apply -f K8S/app/configMap_temp.yml
+
+  #     - name: Limpar Arquivos Temporários
+  #       run: |
+  #         rm K8S/db/configMap_temp.yml
+  #         rm K8S/app/configMap_temp.yml
