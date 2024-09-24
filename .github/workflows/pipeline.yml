@@ -15,11 +15,6 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
-      - name: Configurar Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.9.6'
-
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -30,28 +25,34 @@ jobs:
       - name: Setup Azure CLI
         uses: azure/cli@v2
 
-      - name: Set Azure subscription
-        run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION }}
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.9.6'
 
-      - name: Inicializar Terraform
-        run: terraform -chdir=Terraform/ init
+      # - name: Set Azure subscription
+      #   run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION }}
 
-      - name: Validar Terraform
-        run: terraform -chdir=Terraform/ validate
+      # - name: Inicializar Terraform
+      #   run: terraform -chdir=Terraform/ init
+
+      # - name: Validar Terraform
+      #   run: terraform -chdir=Terraform/ validate
 
       # Está levando mais de 25 minutos e não está completando
       # - name: Planejar Terraform
       #   run: terraform -chdir=Terraform/ plan -out=Terraform/tfplan
-      - name: Aplicar Terraform
-        env:
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
-        run: terraform -chdir=Terraform/ apply -auto-approve
-        # run: terraform -chdir=Terraform/ apply -auto-approve Terraform/tfplan
 
-      - name: Output Terraform
-        run: terraform -chdir=Terraform/ output -json
-        env:
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
+      # - name: Aplicar Terraform
+      #   env:
+      #     TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
+      #   run: terraform -chdir=Terraform/ apply -auto-approve
+      #   # run: terraform -chdir=Terraform/ apply -auto-approve Terraform/tfplan
+
+      # - name: Output Terraform
+      #   run: terraform -chdir=Terraform/ output -json
+      #   env:
+      #     TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
 
   # kubernetes:
   #   needs: terraform
