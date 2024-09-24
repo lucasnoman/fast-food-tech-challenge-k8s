@@ -21,21 +21,21 @@ jobs:
           terraform_version: '1.4.0'
 
       - name: Inicializar Terraform
-        run: terraform -chdir=/Terraform init
+        run: terraform -chdir=Terraform/ init
 
       - name: Validar Terraform
-        run: terraform -chdir=/Terraform validate
+        run: terraform -chdir=Terraform/ validate
 
       - name: Planejar Terraform
-        run: terraform -chdir=/Terraform plan -out=Terraform/tfplan
+        run: terraform -chdir=Terraform/ plan -out=Terraform/tfplan
 
       - name: Aplicar Terraform
         env:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
-        run: terraform -chdir=/Terraform apply -auto-approve tfplan
+        run: terraform -chdir=Terraform/ apply -auto-approve tfplan
 
       - name: Output Terraform
-        run: terraform -chdir=/Terraform output -json
+        run: terraform -chdir=Terraform/ output -json
         env:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
 
