@@ -16,9 +16,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.4.0'
+          terraform_version: '1.9.6'
 
       - name: Inicializar Terraform
         run: terraform -chdir=Terraform/ init
@@ -26,13 +26,15 @@ jobs:
       - name: Validar Terraform
         run: terraform -chdir=Terraform/ validate
 
-      - name: Planejar Terraform
-        run: terraform -chdir=Terraform/ plan -out=Terraform/tfplan
+      # Está levando mais de 25 minutos e não está completando
+      # - name: Planejar Terraform
+      #   run: terraform -chdir=Terraform/ plan -out=Terraform/tfplan
 
       - name: Aplicar Terraform
         env:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION }}
-        run: terraform -chdir=Terraform/ apply -auto-approve tfplan
+        run: terraform -chdir=Terraform/ apply -auto-approve
+        # run: terraform -chdir=Terraform/ apply -auto-approve Terraform/tfplan
 
       - name: Output Terraform
         run: terraform -chdir=Terraform/ output -json
@@ -45,7 +47,7 @@ jobs:
 
   #   steps:
   #     - name: Checkout do Repositório
-  #       uses: actions/checkout@v2
+  #       uses: actions/checkout@v4
 
   #     - name: Configurar kubectl
   #       uses: azure/setup-kubectl@v3
