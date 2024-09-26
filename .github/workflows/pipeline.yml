@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+    outputs:
+      kubeconfig: ${{ steps.terraform_output.outputs.kubeconfig }}
     steps:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
@@ -56,7 +57,7 @@ jobs:
       - name: Exporta Output do Terraform
         id: terraform_output
         run: |
-          echo "::set-output name=kubeconfig::$(terraform -chdir=Terraform/ output -raw kube_config)"
+          echo "kubeconfig=$(terraform -chdir=Terraform/ output -raw kube_config)" >> $GITHUB_OUTPUT
         shell: bash
 
   kubernetes:
@@ -66,7 +67,6 @@ jobs:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
@@ -78,8 +78,8 @@ jobs:
 
       - name: Configurar Kubeconfig
         run: |
-          echo "${{ needs.terraform.outputs.kubeconfig }}" > kubeconfig.json
-          export KUBECONFIG=kubeconfig.json
+          echo "${{ needs.terraform.outputs.kubeconfig }}" > kubeconfig.yaml
+          export KUBECONFIG=$(pwd)/kubeconfig.yaml
           kubectl config view
         shell: bash
 
@@ -105,5 +105,5 @@ jobs:
         run: |
           rm K8S/db/configMap_temp.yml
           rm K8S/app/configMap_temp.yml
-          rm kubeconfig.json
+          rm kubeconfig.yaml
         shell: bash
