@@ -49,10 +49,10 @@ jobs:
 
       # Está levando mais de 25 minutos e não está completando
       - name: Planeja Terraform
-        run: terraform -chdir=Terraform/ plan -out=Terraform/tfplan
+        run: terraform -chdir=Terraform/ plan -out=tfplan
 
       - name: Aplica Terraform
-        run: terraform -chdir=Terraform/ apply -auto-approve Terraform/tfplan
+        run: terraform -chdir=Terraform/ apply -auto-approve tfplan
         # run: terraform -chdir=Terraform/ apply -auto-approve
 
       # - name: Set Azure subscription
