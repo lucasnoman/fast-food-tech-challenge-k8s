@@ -4,4 +4,4 @@ metadata:
   name: app-config
 data:
   # FIX o ClusterIP do BD não deveria ser hardcoded
-  DATABASE_URL: postgresql://fast-food:strongpassword@postgres-service:5432/fast-food
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-service:5432/fast-food

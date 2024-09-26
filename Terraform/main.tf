@@ -5,7 +5,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg-fiap-tech-challenge" {
-  name     = "fiap_tf_test"
+  name     = "fiap_tf_challenge"
   location = "Brazil South"
 }
 

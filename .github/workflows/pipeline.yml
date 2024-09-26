@@ -47,55 +47,63 @@ jobs:
       - name: Valida Terraform
         run: terraform -chdir=Terraform/ validate
 
-      # Está levando mais de 25 minutos e não está completando
       - name: Planeja Terraform
         run: terraform -chdir=Terraform/ plan -out=tfplan
 
       - name: Aplica Terraform
         run: terraform -chdir=Terraform/ apply -auto-approve tfplan
-        # run: terraform -chdir=Terraform/ apply -auto-approve
 
-      # - name: Set Azure subscription
-      #   run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Exporta Output do Terraform
+        id: terraform_output
+        run: |
+          echo "::set-output name=kubeconfig::$(terraform -chdir=Terraform/ output -raw kube_config)"
+        shell: bash
 
-      # - name: Output Terraform
-      #   run: terraform -chdir=Terraform/ output -json
-      #   env:
-      #     TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  kubernetes:
+    needs: terraform
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-  # kubernetes:
-  #   needs: terraform
-  #   runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
 
-  #   steps:
-  #     - name: Checkout do Repositório
-  #       uses: actions/checkout@v4
+      - name: Configurar kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
 
-  #     - name: Configurar kubectl
-  #       uses: azure/setup-kubectl@v3
-  #       with:
-  #         version: 'latest'
+      - name: Configurar Kubeconfig
+        run: |
+          echo "${{ needs.terraform.outputs.kubeconfig }}" > kubeconfig.json
+          export KUBECONFIG=kubeconfig.json
+          kubectl config view
+        shell: bash
 
-  #     - name: Configurar Azure Credentials
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Substituir Placeholders nos ConfigMaps
+        run: |
+          envsubst < K8S/db/configMap.yml > K8S/db/configMap_temp.yml
+          envsubst < K8S/app/configMap.yml > K8S/app/configMap_temp.yml
+        shell: bash
 
-  #     - name: Substituir Placeholders nos ConfigMaps
-  #       env:
-  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  #       run: |
-  #         envsubst < K8S/db/configMap.yml > K8S/db/configMap_temp.yml
-  #         envsubst < K8S/app/configMap.yml > K8S/app/configMap_temp.yml
+      - name: Aplicar ConfigMaps no Kubernetes
+        run: |
+          kubectl apply -f K8S/db/configMap_temp.yml
+          kubectl apply -f K8S/app/configMap_temp.yml
+        shell: bash
 
-  #     - name: Aplicar ConfigMaps no Kubernetes
-  #       run: |
-  #         kubectl apply -f K8S/db/configMap_temp.yml
-  #         kubectl apply -f K8S/app/configMap_temp.yml
+      - name: Aplicar Manifests do Kubernetes
+        run: |
+          kubectl apply -f K8S/db/
+          kubectl apply -f K8S/app/
+        shell: bash
 
-  #     - name: Limpar Arquivos Temporários
-  #       run: |
-  #         rm K8S/db/configMap_temp.yml
-  #         rm K8S/app/configMap_temp.yml
+      - name: Limpar Arquivos Temporários
+        run: |
+          rm K8S/db/configMap_temp.yml
+          rm K8S/app/configMap_temp.yml
+          rm kubeconfig.json
+        shell: bash
