@@ -25,14 +25,24 @@ jobs:
       - name: Check if resource exists
         id: check_resource
         run: |
-          exists=$(az resource show --name aks-fiap-tech-challenge --resource-group fiap_tf_challenge --resource-type Microsoft.ContainerService/managedClusters --query id --output tsv 2>/dev/null)
-          if [ -n "$exists" ]; then
-            echo "Resource exists"
-            echo "exists=true" >> $GITHUB_OUTPUT
+          # Check if the resource group exists
+          rg_exists=$(az group exists --name fiap_tf_challenge)
+
+          if [ "$rg_exists" = "true" ]; then
+            # Check if the AKS cluster exists
+            aks_exists=$(az aks show --name aks-fiap-tech-challenge --resource-group fiap_tf_challenge --query id --output tsv 2>/dev/null)
+            if [ -n "$aks_exists" ]; then
+              echo "AKS cluster exists"
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "AKS cluster does not exist"
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "Resource does not exist"
+            echo "Resource group does not exist"
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+        continue-on-error: true
 
   terraform:
     needs: check_resource
