@@ -91,7 +91,8 @@ jobs:
       - name: Exporta Output do Terraform
         id: terraform_output
         run: |
-          echo "kubeconfig=$(terraform -chdir=Terraform/ output -raw kube_config)" >> $GITHUB_OUTPUT
+          terraform -chdir=Terraform/ output -raw kube_config > kubeconfig.yaml
+          echo "kubeconfig=$(cat kubeconfig.yaml)" >> $GITHUB_OUTPUT
         shell: bash
 
   kubernetes:
